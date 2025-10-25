@@ -55,8 +55,8 @@
                 <p><strong>💡 Funktionsweise der Aktionen:</strong></p>
                 <ul class="list-disc list-inside mt-2 space-y-1">
                     <li><strong>Time-Stop:</strong> Deaktiviert den Kunden sofort und reaktiviert ihn am gewählten Datum.</li>
-                    [cite_start]<li><strong>Sperren (Ban):</strong> Sperrt den Benutzer permanent (Action Code 9)[cite: 1]. Kein Datum nötig.</li>
-                    [cite_start]<li><strong>Entsperren (Unban):</strong> Entsperrt den Benutzer (Action Code 10)[cite: 1]. Kein Datum nötig.</li>
+                    <li><strong>Sperren (Ban):</strong> Sperrt den Benutzer permanent (Action Code 9). Kein Datum nötig.</li>
+                    <li><strong>Entsperren (Unban):</strong> Entsperrt den Benutzer (Action Code 10). Kein Datum nötig.</li>
                 </ul>
             </div>
         </div>
@@ -112,38 +112,40 @@
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
             // ========== URL PARAMETER AUSLESEN UND VORAUSFÜLLEN ==========
-            // WICHTIG: Warte bis alle Elemente geladen sind
-            setTimeout(() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const cusNumberParam = urlParams.get('cus_number');
-                const actionTypeParam = urlParams.get('action_type');
-                const actionDateParam = urlParams.get('action_date');
-                const autoSubmit = urlParams.get('auto_submit');
+            const urlParams = new URLSearchParams(window.location.search);
+            const cusNumberParam = urlParams.get('cus_number');
+            const actionTypeParam = urlParams.get('action_type');
+            const actionDateParam = urlParams.get('action_date');
+            const autoSubmit = urlParams.get('auto_submit');
 
-                if (cusNumberParam) {
-                    document.getElementById('cusNumber').value = cusNumberParam;
-                }
-                if (actionTypeParam) {
-                    document.getElementById('actionType').value = actionTypeParam;
-                    updateUiForAction(); // Update UI nach Auswahl
-                }
-                if (actionDateParam) {
-                    // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
-                    const parts = actionDateParam.split('.');
-                    if (parts.length === 3) {
-                        const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                        const dateField = document.getElementById('actionDate');
-                        dateField.value = isoDate;
-                    }
-                }
+            // Flag to track if date was set from URL
+            let dateSetFromUrl = false;
 
-                // AUTO-SUBMIT wenn auto_submit=true
-                if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
-                    setTimeout(() => {
-                        saltoForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                    }, 500); // 500ms Delay damit User kurz sieht was vorausgefüllt wurde
+            if (cusNumberParam) {
+                document.getElementById('cusNumber').value = cusNumberParam;
+            }
+            if (actionTypeParam) {
+                document.getElementById('actionType').value = actionTypeParam;
+                updateUiForAction(); // Update UI nach Auswahl
+            }
+            if (actionDateParam) {
+                // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
+                const parts = actionDateParam.split('.');
+                if (parts.length === 3) {
+                    const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                    document.getElementById('actionDate').value = isoDate;
+                    dateSetFromUrl = true; // Merke, dass Datum von URL kam
+                    console.log('Datum von URL gesetzt:', isoDate);
                 }
-            }, 100); // 100ms Delay für DOM
+            }
+
+            // Auto-submit falls gewünscht (nur bei Kunden-Tab)
+            if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
+                setTimeout(() => {
+                    // Noch nicht auto-submit, nur für zukünftige Implementierung vorbereitet
+                    // saltoForm.dispatchEvent(new Event('submit'));
+                }, 500);
+            }
             // ========== ENDE URL PARAMETER ==========
 
             const tabCustomer = document.getElementById('tab-customer');
@@ -151,30 +153,46 @@
             const customerSection = document.getElementById('customer-section');
             const visitorSection = document.getElementById('visitor-section');
 
-            const switchToTab = (activeTab, activeSection, inactiveTab, inactiveSection) => {
-                activeTab.classList.add('active');
-                inactiveTab.classList.remove('active');
-                activeSection.classList.remove('hidden');
-                inactiveSection.classList.add('hidden');
-                resultDiv.style.display = 'none';
+            const switchTab = (tab) => {
+                if (tab === 'customer') {
+                    tabCustomer.classList.add('active');
+                    tabVisitor.classList.remove('active');
+                    customerSection.classList.remove('hidden');
+                    visitorSection.classList.add('hidden');
+                } else {
+                    tabVisitor.classList.add('active');
+                    tabCustomer.classList.remove('active');
+                    visitorSection.classList.remove('hidden');
+                    customerSection.classList.add('hidden');
+                }
             };
 
-            tabCustomer.addEventListener('click', () => switchToTab(tabCustomer, customerSection, tabVisitor, visitorSection));
-            tabVisitor.addEventListener('click', () => switchToTab(tabVisitor, visitorSection, tabCustomer, customerSection));
+            tabCustomer.addEventListener('click', () => switchTab('customer'));
+            tabVisitor.addEventListener('click', () => switchTab('visitor'));
 
             const updateUiForAction = () => {
                 const actionType = actionTypeSelect.value;
-                dateGroup.style.display = (actionType === 'timestop') ? 'block' : 'none';
-                dateInput.required = (actionType === 'timestop');
+                const dateLabel = document.getElementById('dateLabel');
+                
+                if (actionType === 'timestop') {
+                    dateGroup.style.display = 'block';
+                    dateInput.required = true;
+                    dateLabel.textContent = 'Reaktivierungsdatum';
+                } else {
+                    dateGroup.style.display = 'none';
+                    dateInput.required = false;
+                }
             };
 
-            const showResult = (message, type) => {
+            const showResult = (message, type = 'info') => {
                 resultDiv.innerHTML = message;
-                resultDiv.className = 'result p-4 rounded-lg font-semibold text-left';
+                resultDiv.className = 'result mt-8 p-4 rounded-lg font-semibold';
                 const typeClasses = {
-                    success: ['bg-green-100', 'text-green-800', 'border', 'border-green-200'],
-                    error: ['bg-red-100', 'text-red-800', 'border', 'border-red-200']
+                    'success': ['bg-green-100', 'border', 'border-green-300', 'text-green-800'],
+                    'error': ['bg-red-100', 'border', 'border-red-300', 'text-red-800'],
+                    'info': ['bg-blue-100', 'border', 'border-blue-300', 'text-blue-800']
                 };
+                resultDiv.classList.remove('hidden');
                 resultDiv.classList.add(...(typeClasses[type] || []));
                 resultDiv.style.display = 'block';
             };
@@ -207,8 +225,14 @@
             };
 
             const setDefaultCustomerDate = () => {
-                 const todayDate = new Date().toISOString().slice(0,10);
-                 document.getElementById('actionDate').value = todayDate;
+                // NUR setzen wenn KEIN Datum von URL kam
+                if (!dateSetFromUrl) {
+                    const todayDate = new Date().toISOString().slice(0,10);
+                    document.getElementById('actionDate').value = todayDate;
+                    console.log('Default-Datum gesetzt:', todayDate);
+                } else {
+                    console.log('Default-Datum NICHT gesetzt (URL-Parameter hat Vorrang)');
+                }
             };
 
             actionTypeSelect.addEventListener('change', updateUiForAction);
@@ -258,6 +282,8 @@
                     showResult(`<p class="font-bold text-lg">✅ Anfrage erfolgreich gesendet!</p><p class="mt-2"><strong>CUS-Nummer:</strong> ${cusNumber}</p><p><strong>Aktion:</strong> ${actionText}</p>`, 'success');
                     saltoForm.reset();
                     updateUiForAction();
+                    // Nach Submit: Setze wieder Default-Datum (da kein URL-Parameter mehr)
+                    dateSetFromUrl = false;
                     setDefaultCustomerDate();
                 }, 1500);
             });
@@ -304,7 +330,7 @@
             // Initial UI setup on page load
             updateUiForAction();
             setDefaultVisitorTimes();
-            setDefaultCustomerDate();
+            setDefaultCustomerDate(); // Wird jetzt nur gesetzt wenn kein URL-Parameter da war
         });
     </script>
 </body>
