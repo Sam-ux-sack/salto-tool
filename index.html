@@ -112,33 +112,38 @@
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
             // ========== URL PARAMETER AUSLESEN UND VORAUSFÜLLEN ==========
-            const urlParams = new URLSearchParams(window.location.search);
-            const cusNumberParam = urlParams.get('cus_number');
-            const actionTypeParam = urlParams.get('action_type');
-            const actionDateParam = urlParams.get('action_date');
-            const autoSubmit = urlParams.get('auto_submit');
+            // WICHTIG: Warte bis alle Elemente geladen sind
+            setTimeout(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const cusNumberParam = urlParams.get('cus_number');
+                const actionTypeParam = urlParams.get('action_type');
+                const actionDateParam = urlParams.get('action_date');
+                const autoSubmit = urlParams.get('auto_submit');
 
-            if (cusNumberParam) {
-                document.getElementById('cusNumber').value = cusNumberParam;
-            }
-            if (actionTypeParam) {
-                document.getElementById('actionType').value = actionTypeParam;
-            }
-            if (actionDateParam) {
-                // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
-                const parts = actionDateParam.split('.');
-                if (parts.length === 3) {
-                    const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                    document.getElementById('actionDate').value = isoDate;
+                if (cusNumberParam) {
+                    document.getElementById('cusNumber').value = cusNumberParam;
                 }
-            }
+                if (actionTypeParam) {
+                    document.getElementById('actionType').value = actionTypeParam;
+                    updateUiForAction(); // Update UI nach Auswahl
+                }
+                if (actionDateParam) {
+                    // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
+                    const parts = actionDateParam.split('.');
+                    if (parts.length === 3) {
+                        const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                        const dateField = document.getElementById('actionDate');
+                        dateField.value = isoDate;
+                    }
+                }
 
-            // AUTO-SUBMIT wenn auto_submit=true
-            if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
-                setTimeout(() => {
-                    saltoForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                }, 500); // 500ms Delay damit User kurz sieht was vorausgefüllt wurde
-            }
+                // AUTO-SUBMIT wenn auto_submit=true
+                if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
+                    setTimeout(() => {
+                        saltoForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }, 500); // 500ms Delay damit User kurz sieht was vorausgefüllt wurde
+                }
+            }, 100); // 100ms Delay für DOM
             // ========== ENDE URL PARAMETER ==========
 
             const tabCustomer = document.getElementById('tab-customer');
