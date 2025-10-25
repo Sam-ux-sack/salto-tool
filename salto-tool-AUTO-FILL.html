@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SALTO Verwaltungs-Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn.active {
+            background-color: white;
+            color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#667eea] to-[#764ba2] min-h-screen flex items-center justify-center p-4">
+
+    <div class="container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-lg text-center">
+        <h1 class="text-3xl font-light text-gray-800 mb-8">🔐 SALTO Verwaltungs-Tool</h1>
+
+        <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+            <button id="tab-customer" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 active">
+                👥 Kunden
+            </button>
+            <button id="tab-visitor" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 text-gray-600">
+                🎯 Besucher
+            </button>
+        </div>
+
+        <div id="customer-section">
+            <form id="saltoForm">
+                <div class="form-group mb-6 text-left">
+                    <label for="actionType" class="block mb-2 font-semibold text-gray-600 text-sm">Aktion</label>
+                    <select id="actionType" name="actionType" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent bg-white">
+                        <option value="timestop">Time-Stop (Reaktivierung planen)</option>
+                        <option value="block">Kunde sperren (Ban)</option>
+                        <option value="unblock">Kunde entsperren (Unban)</option>
+                    </select>
+                </div>
+                <div class="form-group mb-6 text-left">
+                    <label for="cusNumber" class="block mb-2 font-semibold text-gray-600 text-sm">CUS-Nummer</label>
+                    <input type="text" id="cusNumber" name="cusNumber" required placeholder="z.B. CUS-1234" class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent">
+                </div>
+                <div class="form-group mb-6 text-left" id="date-group">
+                    <label for="actionDate" id="dateLabel" class="block mb-2 font-semibold text-gray-600 text-sm">Reaktivierungsdatum</label>
+                    <input type="date" id="actionDate" name="actionDate" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent">
+                </div>
+                <button type="submit" class="submit-btn bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
+                    Aktion ausführen
+                </button>
+            </form>
+            <div class="info bg-blue-50 text-blue-800 border border-blue-200 text-sm mt-8 p-4 rounded-lg text-left">
+                <p><strong>💡 Funktionsweise der Aktionen:</strong></p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Time-Stop:</strong> Deaktiviert den Kunden sofort und reaktiviert ihn am gewählten Datum.</li>
+                    [cite_start]<li><strong>Sperren (Ban):</strong> Sperrt den Benutzer permanent (Action Code 9)[cite: 1]. Kein Datum nötig.</li>
+                    [cite_start]<li><strong>Entsperren (Unban):</strong> Entsperrt den Benutzer (Action Code 10)[cite: 1]. Kein Datum nötig.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="visitor-section" class="hidden">
+            <form id="visitorForm">
+                <div class="form-group mb-6 text-left">
+                    <label for="visitorPhone" class="block mb-2 font-semibold text-gray-600 text-sm">Handynummer (wird als Name & ID verwendet)</label>
+                    <input type="tel" id="visitorPhone" name="visitorPhone" required placeholder="+41 79 123 45 67" class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                </div>
+                <div class="form-group mb-6 text-left">
+                    <label for="visitorStart" class="block mb-2 font-semibold text-gray-600 text-sm">Start (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="visitorStart" name="visitorStart" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                </div>
+                <div class="form-group mb-6 text-left">
+                    <label for="visitorEnd" class="block mb-2 font-semibold text-gray-600 text-sm">Ende (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="visitorEnd" name="visitorEnd" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                </div>
+                <button type="submit" class="submit-btn bg-gradient-to-r from-[#16a085] to-[#27ae60] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
+                    Visitor anlegen + WhatsApp senden
+                </button>
+            </form>
+             <div class="info bg-green-50 text-green-800 border border-green-200 text-sm mt-8 p-4 rounded-lg text-left">
+                <p><strong>🎯 Visitor-Funktionen:</strong></p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><strong>Probetraining:</strong> Kurzzeitiger Zugang (z.B. 3 Stunden)</li>
+                    <li><strong>Gast:</strong> Mehrere Tage Zugang (z.B. 1-2 Wochen)</li>
+                    <li><strong>WhatsApp:</strong> Automatische Benachrichtigung mit Mobile Key</li>
+                    <li><strong>Name = Telefon:</strong> Eindeutige Identifikation über die Handynummer</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="loading hidden mt-6" id="loading">
+            <div class="spinner border-4 border-gray-200 border-t-4 border-t-indigo-500 rounded-full w-8 h-8 animate-spin mx-auto"></div>
+            <p class="mt-2 text-gray-600">Verarbeitung läuft...</p>
+        </div>
+        
+        <div class="result hidden mt-8 p-4 rounded-lg font-semibold" id="result"></div>
+    </div>
+    
+    <iframe name="hiddenFrame" class="hidden"></iframe>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const actionTypeSelect = document.getElementById('actionType');
+            const dateGroup = document.getElementById('date-group');
+            const dateInput = document.getElementById('actionDate');
+            const saltoForm = document.getElementById('saltoForm');
+            const visitorForm = document.getElementById('visitorForm');
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
+
+            // ========== URL PARAMETER AUSLESEN UND VORAUSFÜLLEN ==========
+            const urlParams = new URLSearchParams(window.location.search);
+            const cusNumberParam = urlParams.get('cus_number');
+            const actionTypeParam = urlParams.get('action_type');
+            const actionDateParam = urlParams.get('action_date');
+            const autoSubmit = urlParams.get('auto_submit');
+
+            if (cusNumberParam) {
+                document.getElementById('cusNumber').value = cusNumberParam;
+            }
+            if (actionTypeParam) {
+                document.getElementById('actionType').value = actionTypeParam;
+            }
+            if (actionDateParam) {
+                // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
+                const parts = actionDateParam.split('.');
+                if (parts.length === 3) {
+                    const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+                    document.getElementById('actionDate').value = isoDate;
+                }
+            }
+
+            // AUTO-SUBMIT wenn auto_submit=true
+            if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
+                setTimeout(() => {
+                    saltoForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }, 500); // 500ms Delay damit User kurz sieht was vorausgefüllt wurde
+            }
+            // ========== ENDE URL PARAMETER ==========
+
+            const tabCustomer = document.getElementById('tab-customer');
+            const tabVisitor = document.getElementById('tab-visitor');
+            const customerSection = document.getElementById('customer-section');
+            const visitorSection = document.getElementById('visitor-section');
+
+            const switchToTab = (activeTab, activeSection, inactiveTab, inactiveSection) => {
+                activeTab.classList.add('active');
+                inactiveTab.classList.remove('active');
+                activeSection.classList.remove('hidden');
+                inactiveSection.classList.add('hidden');
+                resultDiv.style.display = 'none';
+            };
+
+            tabCustomer.addEventListener('click', () => switchToTab(tabCustomer, customerSection, tabVisitor, visitorSection));
+            tabVisitor.addEventListener('click', () => switchToTab(tabVisitor, visitorSection, tabCustomer, customerSection));
+
+            const updateUiForAction = () => {
+                const actionType = actionTypeSelect.value;
+                dateGroup.style.display = (actionType === 'timestop') ? 'block' : 'none';
+                dateInput.required = (actionType === 'timestop');
+            };
+
+            const showResult = (message, type) => {
+                resultDiv.innerHTML = message;
+                resultDiv.className = 'result p-4 rounded-lg font-semibold text-left';
+                const typeClasses = {
+                    success: ['bg-green-100', 'text-green-800', 'border', 'border-green-200'],
+                    error: ['bg-red-100', 'text-red-800', 'border', 'border-red-200']
+                };
+                resultDiv.classList.add(...(typeClasses[type] || []));
+                resultDiv.style.display = 'block';
+            };
+
+            const sendDataToWebhook = (data) => {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = ZOHO_WEBHOOK_URL;
+                form.target = 'hiddenFrame';
+                for (const key in data) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = data[key];
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+            };
+
+            const setDefaultVisitorTimes = () => {
+                const now = new Date();
+                const today = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                document.getElementById('visitorStart').value = today;
+
+                const endTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+                const endLocal = new Date(endTime.getTime() - (endTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                document.getElementById('visitorEnd').value = endLocal;
+            };
+
+            const setDefaultCustomerDate = () => {
+                 const todayDate = new Date().toISOString().slice(0,10);
+                 document.getElementById('actionDate').value = todayDate;
+            };
+
+            actionTypeSelect.addEventListener('change', updateUiForAction);
+
+            saltoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const cusNumber = document.getElementById('cusNumber').value.trim();
+                const actionType = actionTypeSelect.value;
+                const actionDate = document.getElementById('actionDate').value;
+                
+                if (!cusNumber || (dateInput.required && !actionDate)) {
+                    showResult('❌ <strong>FEHLER:</strong> Bitte alle erforderlichen Felder ausfüllen.', 'error');
+                    return;
+                }
+                
+                loadingDiv.style.display = 'block';
+                resultDiv.style.display = 'none';
+
+                sendDataToWebhook({
+                    source: 'web_interface_v6_form_fields',
+                    cus_number: cusNumber,
+                    action_type: actionType,
+                    action_date: actionDate
+                });
+
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                    let actionText = '';
+                    if (actionType === 'timestop') {
+                        const formattedDate = new Date(actionDate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        actionText = `Reaktivierung am <strong>${formattedDate}</strong> geplant`;
+                    } else if (actionType === 'block') {
+                        actionText = `Kunde wurde gesperrt (Ban)`;
+                    } else if (actionType === 'unblock') {
+                        actionText = `Kunde wurde entsperrt (Unban)`;
+                    }
+                    
+                    showResult(`<p class="font-bold text-lg">✅ Anfrage erfolgreich gesendet!</p><p class="mt-2"><strong>CUS-Nummer:</strong> ${cusNumber}</p><p><strong>Aktion:</strong> ${actionText}</p>`, 'success');
+                    saltoForm.reset();
+                    updateUiForAction();
+                    setDefaultCustomerDate();
+                }, 1500);
+            });
+
+            visitorForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const visitorPhone = document.getElementById('visitorPhone').value.trim();
+                const visitorStart = document.getElementById('visitorStart').value;
+                const visitorEnd = document.getElementById('visitorEnd').value;
+                
+                if (!visitorPhone || !visitorStart || !visitorEnd) {
+                    showResult('❌ <strong>FEHLER:</strong> Bitte alle Felder ausfüllen.', 'error');
+                    return;
+                }
+                
+                if (new Date(visitorEnd) <= new Date(visitorStart)) {
+                    showResult('❌ <strong>FEHLER:</strong> Das Enddatum muss nach dem Startdatum liegen.', 'error');
+                    return;
+                }
+
+                loadingDiv.style.display = 'block';
+                resultDiv.style.display = 'none';
+
+                sendDataToWebhook({
+                    source: 'web_interface_visitor',
+                    visitor_name: visitorPhone, // Handynummer wird als Name verwendet
+                    visitor_phone: visitorPhone,
+                    visitor_start: visitorStart,
+                    visitor_end: visitorEnd,
+                    action_type: 'visitor'
+                });
+
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                    const startFormatted = new Date(visitorStart).toLocaleString('de-DE');
+                    const endFormatted = new Date(visitorEnd).toLocaleString('de-DE');
+                    
+                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name/ID:</strong> ${visitorPhone}</p><p><strong>Telefon:</strong> ${visitorPhone}</p><p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">📱 WhatsApp wird automatisch gesendet!</p>`, 'success');
+                    visitorForm.reset();
+                    setDefaultVisitorTimes();
+                }, 1500);
+            });
+            
+            // Initial UI setup on page load
+            updateUiForAction();
+            setDefaultVisitorTimes();
+            setDefaultCustomerDate();
+        });
+    </script>
+</body>
+</html>
