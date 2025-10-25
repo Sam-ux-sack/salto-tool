@@ -121,31 +121,43 @@
             // Flag to track if date was set from URL
             let dateSetFromUrl = false;
 
-            if (cusNumberParam) {
-                document.getElementById('cusNumber').value = cusNumberParam;
-            }
-            if (actionTypeParam) {
-                document.getElementById('actionType').value = actionTypeParam;
-                updateUiForAction(); // Update UI nach Auswahl
-            }
-            if (actionDateParam) {
-                // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
-                const parts = actionDateParam.split('.');
-                if (parts.length === 3) {
-                    const isoDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-                    document.getElementById('actionDate').value = isoDate;
-                    dateSetFromUrl = true; // Merke, dass Datum von URL kam
-                    console.log('Datum von URL gesetzt:', isoDate);
+            // Warte kurz um sicherzustellen dass alle DOM-Elemente geladen sind
+            setTimeout(() => {
+                if (cusNumberParam) {
+                    document.getElementById('cusNumber').value = cusNumberParam;
+                    console.log('CUS-Nummer von URL gesetzt:', cusNumberParam);
                 }
-            }
+                if (actionTypeParam) {
+                    document.getElementById('actionType').value = actionTypeParam;
+                    updateUiForAction(); // Update UI nach Auswahl
+                    console.log('Action Type von URL gesetzt:', actionTypeParam);
+                }
+                if (actionDateParam) {
+                    // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
+                    const parts = actionDateParam.split('.');
+                    console.log('Datum-Parts:', parts);
+                    if (parts.length === 3) {
+                        const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                        console.log('Konvertiertes ISO-Datum:', isoDate);
+                        const dateField = document.getElementById('actionDate');
+                        if (dateField) {
+                            dateField.value = isoDate;
+                            dateSetFromUrl = true; // Merke, dass Datum von URL kam
+                            console.log('Datum von URL gesetzt:', isoDate, 'Field value:', dateField.value);
+                        } else {
+                            console.error('actionDate Feld nicht gefunden!');
+                        }
+                    }
+                }
 
-            // Auto-submit falls gewünscht (nur bei Kunden-Tab)
-            if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
-                setTimeout(() => {
-                    // Noch nicht auto-submit, nur für zukünftige Implementierung vorbereitet
-                    // saltoForm.dispatchEvent(new Event('submit'));
-                }, 500);
-            }
+                // Auto-submit falls gewünscht (nur bei Kunden-Tab)
+                if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
+                    setTimeout(() => {
+                        // Noch nicht auto-submit, nur für zukünftige Implementierung vorbereitet
+                        // saltoForm.dispatchEvent(new Event('submit'));
+                    }, 500);
+                }
+            }, 100); // 100ms Verzögerung
             // ========== ENDE URL PARAMETER ==========
 
             const tabCustomer = document.getElementById('tab-customer');
