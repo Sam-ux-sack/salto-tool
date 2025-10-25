@@ -222,11 +222,20 @@
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
+                // Konvertiere Datum von YYYY-MM-DD zurück zu DD.MM.YYYY für PowerShell
+                let formattedActionDate = actionDate;
+                if (actionDate && actionDate.includes('-')) {
+                    const dateParts = actionDate.split('-');
+                    if (dateParts.length === 3) {
+                        formattedActionDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0];
+                    }
+                }
+
                 sendDataToWebhook({
                     source: 'web_interface_v6_form_fields',
                     cus_number: cusNumber,
                     action_type: actionType,
-                    action_date: actionDate
+                    action_date: formattedActionDate
                 });
 
                 setTimeout(() => {
