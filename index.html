@@ -29,6 +29,7 @@
             </button>
         </div>
 
+        <!-- Kunden-Sektion -->
         <div id="customer-section">
             <form id="saltoForm">
                 <div class="form-group mb-6 text-left">
@@ -61,6 +62,7 @@
             </div>
         </div>
 
+        <!-- Besucher-Sektion -->
         <div id="visitor-section" class="hidden">
             <form id="visitorForm">
                 <div class="form-group mb-6 text-left">
@@ -90,6 +92,7 @@
             </div>
         </div>
         
+        <!-- Lade- und Ergebnis-Anzeige -->
         <div class="loading hidden mt-6" id="loading">
             <div class="spinner border-4 border-gray-200 border-t-4 border-t-indigo-500 rounded-full w-8 h-8 animate-spin mx-auto"></div>
             <p class="mt-2 text-gray-600">Verarbeitung läuft...</p>
@@ -98,6 +101,7 @@
         <div class="result hidden mt-8 p-4 rounded-lg font-semibold" id="result"></div>
     </div>
     
+    <!-- Unsichtbarer Iframe für Formular-Senden -->
     <iframe name="hiddenFrame" class="hidden"></iframe>
 
     <script>
@@ -118,10 +122,8 @@
             const actionDateParam = urlParams.get('action_date');
             const autoSubmit = urlParams.get('auto_submit');
 
-            // Flag to track if date was set from URL
             let dateSetFromUrl = false;
 
-            // Warte kurz um sicherzustellen dass alle DOM-Elemente geladen sind
             setTimeout(() => {
                 if (cusNumberParam) {
                     document.getElementById('cusNumber').value = cusNumberParam;
@@ -129,7 +131,7 @@
                 }
                 if (actionTypeParam) {
                     document.getElementById('actionType').value = actionTypeParam;
-                    updateUiForAction(); // Update UI nach Auswahl
+                    updateUiForAction(); 
                     console.log('Action Type von URL gesetzt:', actionTypeParam);
                 }
                 if (actionDateParam) {
@@ -142,7 +144,7 @@
                         const dateField = document.getElementById('actionDate');
                         if (dateField) {
                             dateField.value = isoDate;
-                            dateSetFromUrl = true; // Merke, dass Datum von URL kam
+                            dateSetFromUrl = true; 
                             console.log('Datum von URL gesetzt:', isoDate, 'Field value:', dateField.value);
                         } else {
                             console.error('actionDate Feld nicht gefunden!');
@@ -150,7 +152,6 @@
                     }
                 }
 
-                // Auto-submit falls gewünscht (nur bei Kunden-Tab)
                 if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
                     setTimeout(() => {
                         // Noch nicht auto-submit, nur für zukünftige Implementierung vorbereitet
@@ -237,7 +238,6 @@
             };
 
             const setDefaultCustomerDate = () => {
-                // NUR setzen wenn KEIN Datum von URL kam
                 if (!dateSetFromUrl) {
                     const todayDate = new Date().toISOString().slice(0,10);
                     document.getElementById('actionDate').value = todayDate;
@@ -253,7 +253,7 @@
                 e.preventDefault();
                 const cusNumber = document.getElementById('cusNumber').value.trim();
                 const actionType = actionTypeSelect.value;
-                const actionDate = document.getElementById('actionDate').value;
+                const actionDate = document.getElementById('actionDate').value; // Dies ist YYYY-MM-DD
                 
                 if (!cusNumber || (dateInput.required && !actionDate)) {
                     showResult('❌ <strong>FEHLER:</strong> Bitte alle erforderlichen Felder ausfüllen.', 'error');
@@ -263,27 +263,26 @@
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
-                // Konvertiere Datum von YYYY-MM-DD zurück zu DD.MM.YYYY für PowerShell
-                let formattedActionDate = actionDate;
-                if (actionDate && actionDate.includes('-')) {
-                    const dateParts = actionDate.split('-');
-                    if (dateParts.length === 3) {
-                        formattedActionDate = dateParts[2] + '.' + dateParts[1] + '.' + dateParts[0];
-                    }
-                }
+                // ======================================================
+                // KORREKTUR: Datums-Umwandlung entfernt.
+                // Das 'actionDate' ist bereits im korrekten YYYY-MM-DD Format,
+                // das von PowerShell (und dem CSV) erwartet wird.
+                // ======================================================
 
                 sendDataToWebhook({
                     source: 'web_interface_v6_form_fields',
                     cus_number: cusNumber,
                     action_type: actionType,
-                    action_date: formattedActionDate
+                    action_date: actionDate // Direkt das YYYY-MM-DD Datum senden
                 });
 
                 setTimeout(() => {
                     loadingDiv.style.display = 'none';
                     let actionText = '';
                     if (actionType === 'timestop') {
-                        const formattedDate = new Date(actionDate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        // Datumsformatierung nur für die Anzeige-Nachricht
+                        const displayDate = new Date(actionDate + 'T00:00:00'); // Zeit hinzufügen, um Zeitzonenprobleme bei der Anzeige zu vermeiden
+                        const formattedDate = displayDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         actionText = `Reaktivierung am <strong>${formattedDate}</strong> geplant`;
                     } else if (actionType === 'block') {
                         actionText = `Kunde wurde gesperrt (Ban)`;
@@ -294,7 +293,6 @@
                     showResult(`<p class="font-bold text-lg">✅ Anfrage erfolgreich gesendet!</p><p class="mt-2"><strong>CUS-Nummer:</strong> ${cusNumber}</p><p><strong>Aktion:</strong> ${actionText}</p>`, 'success');
                     saltoForm.reset();
                     updateUiForAction();
-                    // Nach Submit: Setze wieder Default-Datum (da kein URL-Parameter mehr)
                     dateSetFromUrl = false;
                     setDefaultCustomerDate();
                 }, 1500);
@@ -342,7 +340,7 @@
             // Initial UI setup on page load
             updateUiForAction();
             setDefaultVisitorTimes();
-            setDefaultCustomerDate(); // Wird jetzt nur gesetzt wenn kein URL-Parameter da war
+            setDefaultCustomerDate(); 
         });
     </script>
 </body>
