@@ -76,6 +76,10 @@
             </button>
         </div>
 
+        <div class="bg-green-50 border border-green-200 text-green-800 text-xs p-3 rounded-lg mb-6 text-left">
+            <strong>🔒 Doppelter Schutz aktiv:</strong> PIN + Secret-Key
+        </div>
+
         <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button id="tab-customer" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 active">
                 👥 Kunden
@@ -164,6 +168,7 @@
         // ========== PIN-SCHUTZ SYSTEM ==========
         const CORRECT_PIN = '2407'; // 🔐 HIER DEN PIN ÄNDERN!
         const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten in Millisekunden
+        const SECRET_KEY = 'SamsGym2407Secure!'; // 🔒 SECRET FÜR WEBHOOK-SECURITY - UNBEDINGT ÄNDERN!
         let sessionTimer = null;
         let lastActivity = Date.now();
 
@@ -422,6 +427,7 @@
                 resultDiv.style.display = 'none';
 
                 sendDataToWebhook({
+                    secret: SECRET_KEY,
                     source: 'web_interface_v6_form_fields',
                     cus_number: cusNumber,
                     action_type: actionType,
@@ -469,6 +475,7 @@
                 resultDiv.style.display = 'none';
 
                 sendDataToWebhook({
+                    secret: SECRET_KEY,
                     source: 'web_interface_visitor',
                     visitor_name: visitorPhone,
                     visitor_phone: visitorPhone,
