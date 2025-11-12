@@ -10,15 +10,71 @@
         body { font-family: 'Inter', sans-serif; }
         .tab-btn.active {
             background-color: white;
-            color: #4f46e5; /* indigo-600 */
+            color: #4f46e5;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-[#667eea] to-[#764ba2] min-h-screen flex items-center justify-center p-4">
 
-    <div class="container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-lg text-center">
-        <h1 class="text-3xl font-light text-gray-800 mb-8">🔐 SALTO Verwaltungs-Tool</h1>
+    <!-- PIN-Eingabe-Screen (zunächst sichtbar) -->
+    <div id="pin-screen" class="container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-md text-center">
+        <div class="mb-8">
+            <div class="text-6xl mb-4">🔒</div>
+            <h1 class="text-3xl font-light text-gray-800 mb-2">SALTO Tool</h1>
+            <p class="text-gray-600">Bitte PIN eingeben</p>
+        </div>
+        
+        <form id="pin-form">
+            <div class="form-group mb-6">
+                <input 
+                    type="password" 
+                    id="pin-input" 
+                    name="pin" 
+                    required 
+                    maxlength="6"
+                    placeholder="PIN eingeben" 
+                    class="w-full p-4 border-2 border-gray-200 rounded-lg text-center text-2xl tracking-widest transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                    autocomplete="off"
+                >
+            </div>
+            <button 
+                type="submit" 
+                class="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full hover:shadow-xl hover:-translate-y-1 transform"
+            >
+                Entsperren
+            </button>
+        </form>
+        
+        <div id="pin-error" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg text-sm">
+            ❌ Falscher PIN! Bitte erneut versuchen.
+        </div>
+        
+        <div class="mt-6 text-xs text-gray-400">
+            🔐 Zugriff nur für autorisierte Mitarbeiter
+        </div>
+    </div>
+
+    <!-- Haupt-Tool (zunächst versteckt) -->
+    <div id="main-app" class="hidden container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-light text-gray-800">🔐 SALTO Verwaltungs-Tool</h1>
+            <button 
+                id="logout-btn" 
+                class="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200"
+                title="Tool sperren"
+            >
+                🔒 Sperren
+            </button>
+        </div>
 
         <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button id="tab-customer" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 active">
@@ -105,19 +161,108 @@
     <iframe name="hiddenFrame" class="hidden"></iframe>
 
     <script>
+        // ========== PIN-SCHUTZ SYSTEM ==========
+        const CORRECT_PIN = '2407'; // 🔐 HIER DEN PIN ÄNDERN!
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten in Millisekunden
+        let sessionTimer = null;
+        let lastActivity = Date.now();
+
+        const pinScreen = document.getElementById('pin-screen');
+        const mainApp = document.getElementById('main-app');
+        const pinForm = document.getElementById('pin-form');
+        const pinInput = document.getElementById('pin-input');
+        const pinError = document.getElementById('pin-error');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // PIN-Überprüfung
+        pinForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredPin = pinInput.value.trim();
+            
+            if (enteredPin === CORRECT_PIN) {
+                unlockApp();
+            } else {
+                showPinError();
+                pinInput.value = '';
+                pinInput.focus();
+            }
+        });
+
+        // App entsperren
+        function unlockApp() {
+            pinScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            pinInput.value = '';
+            pinError.classList.add('hidden');
+            startSessionTimer();
+            console.log('✅ Zugriff gewährt');
+        }
+
+        // App sperren
+        function lockApp() {
+            mainApp.classList.add('hidden');
+            pinScreen.classList.remove('hidden');
+            pinInput.value = '';
+            pinInput.focus();
+            clearTimeout(sessionTimer);
+            console.log('🔒 Tool gesperrt');
+        }
+
+        // PIN-Fehler anzeigen
+        function showPinError() {
+            pinError.classList.remove('hidden');
+            pinForm.classList.add('shake');
+            setTimeout(() => {
+                pinForm.classList.remove('shake');
+            }, 500);
+        }
+
+        // Session-Timer starten
+        function startSessionTimer() {
+            clearTimeout(sessionTimer);
+            sessionTimer = setTimeout(() => {
+                alert('⏱️ Session abgelaufen. Bitte erneut anmelden.');
+                lockApp();
+            }, SESSION_TIMEOUT);
+        }
+
+        // Aktivität tracken und Timer zurücksetzen
+        function resetSessionTimer() {
+            lastActivity = Date.now();
+            startSessionTimer();
+        }
+
+        // Event Listener für Benutzeraktivität
+        ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetSessionTimer);
+        });
+
+        // Logout-Button
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Möchtest du das Tool wirklich sperren?')) {
+                lockApp();
+            }
+        });
+
+        // Fokus auf PIN-Input beim Laden
+        window.addEventListener('load', () => {
+            pinInput.focus();
+        });
+
+        // ========== ORIGINAL TOOL FUNKTIONALITÄT (unverändert) ==========
         document.addEventListener('DOMContentLoaded', () => {
             const actionTypeSelect = document.getElementById('actionType');
             const dateGroup = document.getElementById('date-group');
             const dateInput = document.getElementById('actionDate');
             const saltoForm = document.getElementById('saltoForm');
             const visitorForm = document.getElementById('visitorForm');
-            const visitorStartInput = document.getElementById('visitorStart'); // NEU
-            const visitorEndInput = document.getElementById('visitorEnd'); // NEU
+            const visitorStartInput = document.getElementById('visitorStart');
+            const visitorEndInput = document.getElementById('visitorEnd');
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
-            // ========== URL PARAMETER AUSLESEN UND VORAUSFÜLLEN ==========
+            // URL Parameter auslesen
             const urlParams = new URLSearchParams(window.location.search);
             const cusNumberParam = urlParams.get('cus_number');
             const actionTypeParam = urlParams.get('action_type');
@@ -137,7 +282,6 @@
                     console.log('Action Type von URL gesetzt:', actionTypeParam);
                 }
                 if (actionDateParam) {
-                    // Konvertiere DD.MM.YYYY zu YYYY-MM-DD für input[type="date"]
                     const parts = actionDateParam.split('.');
                     console.log('Datum-Parts:', parts);
                     if (parts.length === 3) {
@@ -156,12 +300,10 @@
 
                 if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
                     setTimeout(() => {
-                        // Noch nicht auto-submit, nur für zukünftige Implementierung vorbereitet
-                        // saltoForm.dispatchEvent(new Event('submit'));
+                        // Auto-submit für zukünftige Implementierung vorbereitet
                     }, 500);
                 }
-            }, 100); // 100ms Verzögerung
-            // ========== ENDE URL PARAMETER ==========
+            }, 100);
 
             const tabCustomer = document.getElementById('tab-customer');
             const tabVisitor = document.getElementById('tab-visitor');
@@ -251,34 +393,25 @@
 
             actionTypeSelect.addEventListener('change', updateUiForAction);
 
-            // NEU: Automatisches Enddatum für Visitor (plus 3 Stunden)
             visitorStartInput.addEventListener('input', () => {
                 const startValue = visitorStartInput.value;
                 if (startValue) {
                     try {
                         const startDate = new Date(startValue);
-                        
-                        // 3 Stunden hinzufügen
                         const endTime = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
-                        
-                        // Formatieren für datetime-local Input (YYYY-MM-DDTHH:MM)
-                        // Zeitzonen-Offset berücksichtigen, genau wie in setDefaultVisitorTimes
                         const endLocal = new Date(endTime.getTime() - (endTime.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                        
                         visitorEndInput.value = endLocal;
                     } catch (error) {
-                        // Nichts tun, wenn das Datum während der Eingabe ungültig ist
-                        console.warn("Konnte Enddatum nicht automatisch setzen (Eingabe unvollständig?):", error);
+                        console.warn("Konnte Enddatum nicht automatisch setzen:", error);
                     }
                 }
             });
-            // ENDE NEU
 
             saltoForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const cusNumber = document.getElementById('cusNumber').value.trim();
                 const actionType = actionTypeSelect.value;
-                const actionDate = document.getElementById('actionDate').value; // Dies ist YYYY-MM-DD
+                const actionDate = document.getElementById('actionDate').value;
                 
                 if (!cusNumber || (dateInput.required && !actionDate)) {
                     showResult('❌ <strong>FEHLER:</strong> Bitte alle erforderlichen Felder ausfüllen.', 'error');
@@ -288,25 +421,18 @@
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
-                // ======================================================
-                // KORREKTUR: Datums-Umwandlung entfernt.
-                // Das 'actionDate' ist bereits im korrekten YYYY-MM-DD Format,
-                // das von PowerShell (und dem CSV) erwartet wird.
-                // ======================================================
-
                 sendDataToWebhook({
                     source: 'web_interface_v6_form_fields',
                     cus_number: cusNumber,
                     action_type: actionType,
-                    action_date: actionDate // Direkt das YYYY-MM-DD Datum senden
+                    action_date: actionDate
                 });
 
                 setTimeout(() => {
                     loadingDiv.style.display = 'none';
                     let actionText = '';
                     if (actionType === 'timestop') {
-                        // Datumsformatierung nur für die Anzeige-Nachricht
-                        const displayDate = new Date(actionDate + 'T00:00:00'); // Zeit hinzufügen, um Zeitzonenprobleme bei der Anzeige zu vermeiden
+                        const displayDate = new Date(actionDate + 'T00:00:00');
                         const formattedDate = displayDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         actionText = `Reaktivierung am <strong>${formattedDate}</strong> geplant`;
                     } else if (actionType === 'block') {
@@ -326,8 +452,8 @@
             visitorForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const visitorPhone = document.getElementById('visitorPhone').value.trim();
-                const visitorStart = visitorStartInput.value; // NEU: Geänderte Variable
-                const visitorEnd = visitorEndInput.value; // NEU: Geänderte Variable
+                const visitorStart = visitorStartInput.value;
+                const visitorEnd = visitorEndInput.value;
                 
                 if (!visitorPhone || !visitorStart || !visitorEnd) {
                     showResult('❌ <strong>FEHLER:</strong> Bitte alle erforderlichen Felder ausfüllen.', 'error');
@@ -344,7 +470,7 @@
 
                 sendDataToWebhook({
                     source: 'web_interface_visitor',
-                    visitor_name: visitorPhone, // Handynummer wird als Name verwendet
+                    visitor_name: visitorPhone,
                     visitor_phone: visitorPhone,
                     visitor_start: visitorStart,
                     visitor_end: visitorEnd,
@@ -362,7 +488,6 @@
                 }, 1500);
             });
             
-            // Initial UI setup on page load
             updateUiForAction();
             setDefaultVisitorTimes();
             setDefaultCustomerDate(); 
@@ -370,4 +495,3 @@
     </script>
 </body>
 </html>
-
