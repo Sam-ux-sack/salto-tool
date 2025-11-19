@@ -308,9 +308,15 @@
                     switchTab('visitor');
                     
                     // Telefonnummer setzen
-                    // Entferne Leerzeichen aus der URL, falls vorhanden
-                    document.getElementById('visitorPhone').value = visitorPhoneParam.trim();
-                    console.log('Visitor Phone gesetzt:', visitorPhoneParam);
+                    // Das "+" Zeichen wird in URLs oft als Leerzeichen interpretiert.
+                    // Wir holen uns die Nummer, trimmen sie und fügen das + wieder hinzu, wenn es fehlt.
+                    let phone = visitorPhoneParam.trim();
+                    if (!phone.startsWith('+')) {
+                        phone = '+' + phone;
+                    }
+                    
+                    document.getElementById('visitorPhone').value = phone;
+                    console.log('Visitor Phone gesetzt:', phone);
 
                     // Zeiten setzen wenn Parameter vorhanden
                     if (visitorTimeParam) {
