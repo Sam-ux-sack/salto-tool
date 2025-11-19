@@ -262,46 +262,100 @@
             const loadingDiv = document.getElementById('loading');
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
+            // Hilfsfunktion: Deutsches Datumsformat (DD.MM.YYYY HH:mm) in ISO-String für Input umwandeln
+            const parseGermanDateTime = (dateTimeStr) => {
+                try {
+                    // Erwartet: "19.11.2025 18:00"
+                    const [datePart, timePart] = dateTimeStr.split(' ');
+                    const [day, month, year] = datePart.split('.');
+                    const [hour, minute] = timePart.split(':');
+                    
+                    // Erstelle Date Objekt
+                    const date = new Date(year, month - 1, day, hour, minute);
+                    return date;
+                } catch (e) {
+                    console.error("Fehler beim Parsen des Datums:", e);
+                    return null;
+                }
+            };
+
+            // Hilfsfunktion: Date Objekt zu input datetime-local String (YYYY-MM-DDTHH:mm)
+            const dateToLocalISO = (date) => {
+                const offset = date.getTimezoneOffset() * 60000;
+                const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
+                return localISOTime;
+            };
+
             // URL Parameter auslesen
             const urlParams = new URLSearchParams(window.location.search);
+            
+            // Kunden Parameter
             const cusNumberParam = urlParams.get('cus_number');
             const actionTypeParam = urlParams.get('action_type');
             const actionDateParam = urlParams.get('action_date');
             const autoSubmit = urlParams.get('auto_submit');
 
+            // Visitor Parameter
+            const visitorPhoneParam = urlParams.get('visitor_phone');
+            const visitorTimeParam = urlParams.get('visitor_time'); // Erwartet Format: DD.MM.YYYY HH:mm
+
             let dateSetFromUrl = false;
 
             setTimeout(() => {
+                // --- Visitor Logik ---
+                if (visitorPhoneParam) {
+                    // Tab wechseln
+                    switchTab('visitor');
+                    
+                    // Telefonnummer setzen
+                    // Entferne Leerzeichen aus der URL, falls vorhanden
+                    document.getElementById('visitorPhone').value = visitorPhoneParam.trim();
+                    console.log('Visitor Phone gesetzt:', visitorPhoneParam);
+
+                    // Zeiten setzen wenn Parameter vorhanden
+                    if (visitorTimeParam) {
+                        const inputDate = parseGermanDateTime(visitorTimeParam);
+                        
+                        if (inputDate) {
+                            // Startzeit: Input - 1 Stunde
+                            const startDate = new Date(inputDate.getTime());
+                            startDate.setHours(startDate.getHours() - 1);
+                            visitorStartInput.value = dateToLocalISO(startDate);
+
+                            // Endzeit: Input + 2 Stunden
+                            const endDate = new Date(inputDate.getTime());
+                            endDate.setHours(endDate.getHours() + 2);
+                            visitorEndInput.value = dateToLocalISO(endDate);
+
+                            console.log('Visitor Zeiten berechnet. Start:', dateToLocalISO(startDate), 'Ende:', dateToLocalISO(endDate));
+                        }
+                    }
+                }
+                
+                // --- Kunden Logik (Bestehend) ---
                 if (cusNumberParam) {
                     document.getElementById('cusNumber').value = cusNumberParam;
-                    console.log('CUS-Nummer von URL gesetzt:', cusNumberParam);
+                    switchTab('customer'); // Explizit auf Customer Tab, wenn CUS Nummer da ist (und kein Visitor)
+                    if(visitorPhoneParam) switchTab('visitor'); // Aber Visitor gewinnt, wenn beides da wäre
                 }
                 if (actionTypeParam) {
                     document.getElementById('actionType').value = actionTypeParam;
                     updateUiForAction(); 
-                    console.log('Action Type von URL gesetzt:', actionTypeParam);
                 }
                 if (actionDateParam) {
                     const parts = actionDateParam.split('.');
-                    console.log('Datum-Parts:', parts);
                     if (parts.length === 3) {
                         const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                        console.log('Konvertiertes ISO-Datum:', isoDate);
                         const dateField = document.getElementById('actionDate');
                         if (dateField) {
                             dateField.value = isoDate;
                             dateSetFromUrl = true; 
-                            console.log('Datum von URL gesetzt:', isoDate, 'Field value:', dateField.value);
-                        } else {
-                            console.error('actionDate Feld nicht gefunden!');
                         }
                     }
                 }
 
                 if (autoSubmit === 'true' && cusNumberParam && actionTypeParam) {
-                    setTimeout(() => {
-                        // Auto-submit für zukünftige Implementierung vorbereitet
-                    }, 500);
+                    // Auto-submit Logic Placeholder
                 }
             }, 100);
 
@@ -355,6 +409,8 @@
             };
 
             const sendDataToWebhook = (data) => {
+                // Hinweis: In der iframe-Vorschau funktioniert der Submit an Zoho möglicherweise nicht
+                // wegen Sicherheitsbeschränkungen, aber der Code-Logik ist hier korrekt.
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = ZOHO_WEBHOOK_URL;
@@ -372,6 +428,9 @@
             };
 
             const setDefaultVisitorTimes = () => {
+                // Nur setzen, wenn noch kein Wert (durch URL Parameter) gesetzt wurde
+                if (visitorStartInput.value) return;
+
                 const now = new Date();
                 const today = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
                 document.getElementById('visitorStart').value = today;
@@ -385,9 +444,6 @@
                 if (!dateSetFromUrl) {
                     const todayDate = new Date().toISOString().slice(0,10);
                     document.getElementById('actionDate').value = todayDate;
-                    console.log('Default-Datum gesetzt:', todayDate);
-                } else {
-                    console.log('Default-Datum NICHT gesetzt (URL-Parameter hat Vorrang)');
                 }
             };
 
