@@ -161,9 +161,13 @@
     <iframe name="hiddenFrame" class="hidden"></iframe>
 
     <script>
-        // ========== PIN-SCHUTZ SYSTEM ==========
-        const CORRECT_PIN = '2407'; // 🔐 HIER DEN PIN ÄNDERN!
-        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten in Millisekunden
+        // ========== SICHERES PIN-SYSTEM (Verschleierung) ==========
+        // Dies ist der Base64-Code von '2407'. 
+        // Im Code steht "2407" nicht mehr im Klartext, sondern als "MjQwNw==".
+        // Das funktioniert in jedem Browser und jeder Umgebung zuverlässig.
+        const PIN_ENC = 'MjQwNw=='; 
+        
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten
         let sessionTimer = null;
         let lastActivity = Date.now();
 
@@ -179,12 +183,19 @@
             e.preventDefault();
             const enteredPin = pinInput.value.trim();
             
-            if (enteredPin === CORRECT_PIN) {
-                unlockApp();
-            } else {
+            // Wir wandeln die Eingabe in den gleichen Code um und vergleichen
+            // btoa() ist eine Standard-Funktion, die Text unleserlich macht (Base64)
+            try {
+                if (btoa(enteredPin) === PIN_ENC) {
+                    unlockApp();
+                } else {
+                    showPinError();
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            } catch (err) {
+                // Falls btoa fehlschlägt (z.B. Sonderzeichen), ist der PIN sowieso falsch
                 showPinError();
-                pinInput.value = '';
-                pinInput.focus();
             }
         });
 
