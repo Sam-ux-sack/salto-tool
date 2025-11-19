@@ -161,11 +161,11 @@
     <iframe name="hiddenFrame" class="hidden"></iframe>
 
     <script>
-        // ========== SICHERES PIN-SYSTEM (Verschleierung) ==========
-        // Dies ist der Base64-Code von '2407'. 
-        // Im Code steht "2407" nicht mehr im Klartext, sondern als "MjQwNw==".
-        // Das funktioniert in jedem Browser und jeder Umgebung zuverlässig.
-        const PIN_ENC = 'MjQwNw=='; 
+        // ========== SICHERES PIN-SYSTEM (SHA-256) ==========
+        // Dies ist der "Fingerabdruck" (SHA-256 Hash) von 2407.
+        // Wenn man den Code liest, sieht man nicht mehr "2407".
+        // Da du GitHub Pages (HTTPS) nutzt, funktioniert dies auf allen Geräten.
+        const PIN_HASH = 'd1a6d1525313114fb2250020343ce9596017da71665cc02536755a9c5037500f';
         
         const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten
         let sessionTimer = null;
@@ -178,24 +178,35 @@
         const pinError = document.getElementById('pin-error');
         const logoutBtn = document.getElementById('logout-btn');
 
+        // Hashing-Funktion (Erstellt den Fingerabdruck der Eingabe)
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
         // PIN-Überprüfung
-        pinForm.addEventListener('submit', (e) => {
+        pinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const enteredPin = pinInput.value.trim();
             
-            // Wir wandeln die Eingabe in den gleichen Code um und vergleichen
-            // btoa() ist eine Standard-Funktion, die Text unleserlich macht (Base64)
             try {
-                if (btoa(enteredPin) === PIN_ENC) {
+                // Wir berechnen den Hash der Eingabe und vergleichen ihn mit dem gespeicherten Hash
+                const enteredHash = await sha256(enteredPin);
+                
+                if (enteredHash === PIN_HASH) {
                     unlockApp();
                 } else {
                     showPinError();
                     pinInput.value = '';
                     pinInput.focus();
                 }
-            } catch (err) {
-                // Falls btoa fehlschlägt (z.B. Sonderzeichen), ist der PIN sowieso falsch
-                showPinError();
+            } catch (error) {
+                console.error("Verschlüsselungsfehler (evtl. kein HTTPS?):", error);
+                // Fallback, falls Browser crypto nicht unterstützt (sollte auf GitHub Pages nicht passieren)
+                alert("Sicherheitsfehler: Bitte stelle sicher, dass du die Seite über HTTPS aufrufst.");
             }
         });
 
