@@ -495,11 +495,14 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 resultDiv.style.display = 'none';
 
                 sendDataToWebhook({
-                    source: 'web_interface_v6_form_fields',
-                    cus_number: cusNumber,
-                    action_type: actionType,
-                    action_date: actionDate
-                });
+    source: 'web_interface_visitor',
+    visitor_name: visitorPhone,
+    visitor_phone: visitorPhone,
+    visitor_start: visitorStart,
+    visitor_end: visitorEnd,
+    action_type: 'visitor',
+    vorname: vornameParam || ''
+});
 
                 setTimeout(() => {
                     loadingDiv.style.display = 'none';
