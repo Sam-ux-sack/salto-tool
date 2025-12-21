@@ -162,9 +162,6 @@
 
     <script>
         // ========== SICHERES PIN-SYSTEM (Base64 Obfuscation) ==========
-        // Dies ist der Base64-Code von '2407'. 
-        // Der Code ist verschleiert, damit man den PIN nicht direkt lesen kann.
-        // Diese Methode funktioniert 100% zuverlässig in jedem Browser.
         const PIN_ENC = 'MjQwNw=='; 
         
         const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten
@@ -184,7 +181,6 @@
             const enteredPin = pinInput.value.trim();
             
             try {
-                // btoa() wandelt Eingabe in Base64 um. Wir vergleichen mit dem gespeicherten Wert.
                 if (btoa(enteredPin) === PIN_ENC) {
                     unlockApp();
                 } else {
@@ -193,7 +189,6 @@
                     pinInput.focus();
                 }
             } catch (err) {
-                // Falls Umwandlung fehlschlägt (z.B. Sonderzeichen), ist PIN falsch
                 showPinError();
             }
         });
@@ -275,12 +270,9 @@
             // Hilfsfunktion: Deutsches Datumsformat (DD.MM.YYYY HH:mm) in ISO-String für Input umwandeln
             const parseGermanDateTime = (dateTimeStr) => {
                 try {
-                    // Erwartet: "19.11.2025 18:00"
                     const [datePart, timePart] = dateTimeStr.split(' ');
                     const [day, month, year] = datePart.split('.');
                     const [hour, minute] = timePart.split(':');
-                    
-                    // Erstelle Date Objekt
                     const date = new Date(year, month - 1, day, hour, minute);
                     return date;
                 } catch (e) {
@@ -305,22 +297,18 @@
             const actionDateParam = urlParams.get('action_date');
             const autoSubmit = urlParams.get('auto_submit');
 
-// Visitor Parameter
-const visitorPhoneParam = urlParams.get('visitor_phone');
-const visitorTimeParam = urlParams.get('visitor_time'); // Erwartet Format: DD.MM.YYYY HH:mm
-const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
+            // Visitor Parameter
+            const visitorPhoneParam = urlParams.get('visitor_phone');
+            const visitorTimeParam = urlParams.get('visitor_time');
+            const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
 
             let dateSetFromUrl = false;
 
             setTimeout(() => {
                 // --- Visitor Logik ---
                 if (visitorPhoneParam) {
-                    // Tab wechseln
                     switchTab('visitor');
                     
-                    // Telefonnummer setzen
-                    // Das "+" Zeichen wird in URLs oft als Leerzeichen interpretiert.
-                    // Wir holen uns die Nummer, trimmen sie und fügen das + wieder hinzu, wenn es fehlt.
                     let phone = visitorPhoneParam.trim();
                     if (!phone.startsWith('+')) {
                         phone = '+' + phone;
@@ -328,18 +316,20 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                     
                     document.getElementById('visitorPhone').value = phone;
                     console.log('Visitor Phone gesetzt:', phone);
+                    
+                    // NEU: Vorname loggen wenn vorhanden
+                    if (vornameParam) {
+                        console.log('Visitor Vorname gesetzt:', vornameParam);
+                    }
 
-                    // Zeiten setzen wenn Parameter vorhanden
                     if (visitorTimeParam) {
                         const inputDate = parseGermanDateTime(visitorTimeParam);
                         
                         if (inputDate) {
-                            // Startzeit: Input - 1 Stunde
                             const startDate = new Date(inputDate.getTime());
                             startDate.setHours(startDate.getHours() - 1);
                             visitorStartInput.value = dateToLocalISO(startDate);
 
-                            // Endzeit: Input + 2 Stunden
                             const endDate = new Date(inputDate.getTime());
                             endDate.setHours(endDate.getHours() + 2);
                             visitorEndInput.value = dateToLocalISO(endDate);
@@ -352,8 +342,8 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 // --- Kunden Logik (Bestehend) ---
                 if (cusNumberParam) {
                     document.getElementById('cusNumber').value = cusNumberParam;
-                    switchTab('customer'); // Explizit auf Customer Tab, wenn CUS Nummer da ist (und kein Visitor)
-                    if(visitorPhoneParam) switchTab('visitor'); // Aber Visitor gewinnt, wenn beides da wäre
+                    switchTab('customer');
+                    if(visitorPhoneParam) switchTab('visitor');
                 }
                 if (actionTypeParam) {
                     document.getElementById('actionType').value = actionTypeParam;
@@ -426,8 +416,6 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
             };
 
             const sendDataToWebhook = (data) => {
-                // Hinweis: In der iframe-Vorschau funktioniert der Submit an Zoho möglicherweise nicht
-                // wegen Sicherheitsbeschränkungen, aber der Code-Logik ist hier korrekt.
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = ZOHO_WEBHOOK_URL;
@@ -445,7 +433,6 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
             };
 
             const setDefaultVisitorTimes = () => {
-                // Nur setzen, wenn noch kein Wert (durch URL Parameter) gesetzt wurde
                 if (visitorStartInput.value) return;
 
                 const now = new Date();
@@ -480,6 +467,7 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 }
             });
 
+            // KUNDEN-FORM SUBMIT (Original - unverändert)
             saltoForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const cusNumber = document.getElementById('cusNumber').value.trim();
@@ -495,14 +483,11 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 resultDiv.style.display = 'none';
 
                 sendDataToWebhook({
-    source: 'web_interface_visitor',
-    visitor_name: visitorPhone,
-    visitor_phone: visitorPhone,
-    visitor_start: visitorStart,
-    visitor_end: visitorEnd,
-    action_type: 'visitor',
-    vorname: vornameParam || ''
-});
+                    source: 'web_interface_v6_form_fields',
+                    cus_number: cusNumber,
+                    action_type: actionType,
+                    action_date: actionDate
+                });
 
                 setTimeout(() => {
                     loadingDiv.style.display = 'none';
@@ -525,6 +510,7 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 }, 1500);
             });
 
+            // VISITOR-FORM SUBMIT (mit vorname Parameter)
             visitorForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const visitorPhone = document.getElementById('visitorPhone').value.trim();
@@ -544,13 +530,15 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
+                // NEU: vorname wird jetzt mitgesendet
                 sendDataToWebhook({
                     source: 'web_interface_visitor',
                     visitor_name: visitorPhone,
                     visitor_phone: visitorPhone,
                     visitor_start: visitorStart,
                     visitor_end: visitorEnd,
-                    action_type: 'visitor'
+                    action_type: 'visitor',
+                    vorname: vornameParam || ''
                 });
 
                 setTimeout(() => {
@@ -558,7 +546,10 @@ const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
                     const startFormatted = new Date(visitorStart).toLocaleString('de-DE');
                     const endFormatted = new Date(visitorEnd).toLocaleString('de-DE');
                     
-                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name/ID:</strong> ${visitorPhone}</p><p><strong>Telefon:</strong> ${visitorPhone}</p><p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">📱 WhatsApp wird automatisch gesendet!</p>`, 'success');
+                    // NEU: Vorname in Erfolgsmeldung anzeigen wenn vorhanden
+                    const nameDisplay = vornameParam ? vornameParam : visitorPhone;
+                    
+                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name:</strong> ${nameDisplay}</p><p><strong>Telefon:</strong> ${visitorPhone}</p><p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">📱 WhatsApp wird automatisch gesendet!</p>`, 'success');
                     visitorForm.reset();
                     setDefaultVisitorTimes();
                 }, 1500);
