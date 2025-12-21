@@ -305,9 +305,10 @@
             const actionDateParam = urlParams.get('action_date');
             const autoSubmit = urlParams.get('auto_submit');
 
-            // Visitor Parameter
-            const visitorPhoneParam = urlParams.get('visitor_phone');
-            const visitorTimeParam = urlParams.get('visitor_time'); // Erwartet Format: DD.MM.YYYY HH:mm
+// Visitor Parameter
+const visitorPhoneParam = urlParams.get('visitor_phone');
+const visitorTimeParam = urlParams.get('visitor_time'); // Erwartet Format: DD.MM.YYYY HH:mm
+const vornameParam = urlParams.get('vorname'); // NEU: Name des Besuchers
 
             let dateSetFromUrl = false;
 
