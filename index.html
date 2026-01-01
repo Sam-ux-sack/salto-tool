@@ -134,19 +134,14 @@
                     <input type="datetime-local" id="visitorEnd" name="visitorEnd" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
                 </div>
                 
-                <!-- E-Mail Feld (nur sichtbar wenn E-Mail Parameter vorhanden) -->
-                <div class="form-group mb-6 text-left hidden" id="email-group">
-                    <label for="visitorEmail" class="block mb-2 font-semibold text-gray-600 text-sm">📧 E-Mail (für Fallback)</label>
-                    <input type="email" id="visitorEmail" name="visitorEmail" placeholder="kunde@email.com" class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-blue-50">
+                <!-- E-Mail Info (nur sichtbar wenn E-Mail Parameter vorhanden) -->
+                <div class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left" id="email-info">
+                    <p class="text-sm text-blue-800">📧 <strong>E-Mail:</strong> <span id="email-display"></span></p>
+                    <p class="text-xs text-blue-600 mt-1">WhatsApp + E-Mail werden automatisch gesendet</p>
                 </div>
                 
-                <button type="submit" class="submit-btn bg-gradient-to-r from-[#16a085] to-[#27ae60] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
-                    📱 Visitor anlegen + WhatsApp senden
-                </button>
-                
-                <!-- E-Mail Fallback Button (nur sichtbar wenn E-Mail vorhanden) -->
-                <button type="button" id="sendEmailBtn" class="hidden bg-gradient-to-r from-[#3498db] to-[#2980b9] text-white py-3 px-6 rounded-full font-bold text-base cursor-pointer transition duration-300 w-full mt-3 hover:shadow-xl hover:-translate-y-1 transform">
-                    📧 E-Mail senden (falls WhatsApp nicht zugestellt)
+                <button type="submit" id="visitorSubmitBtn" class="submit-btn bg-gradient-to-r from-[#16a085] to-[#27ae60] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
+                    🚀 Visitor anlegen + Benachrichtigung senden
                 </button>
             </form>
             
@@ -156,7 +151,7 @@
                     <li><strong>Probetraining:</strong> Kurzzeitiger Zugang (z.B. 3 Stunden)</li>
                     <li><strong>Gast:</strong> Mehrere Tage Zugang (z.B. 1-2 Wochen)</li>
                     <li><strong>WhatsApp:</strong> Automatische Benachrichtigung mit Mobile Key</li>
-                    <li><strong>📧 E-Mail Fallback:</strong> Falls WhatsApp nicht zugestellt werden kann</li>
+                    <li><strong>📧 E-Mail:</strong> Wird automatisch mitgesendet (falls vorhanden)</li>
                 </ul>
             </div>
         </div>
@@ -278,9 +273,9 @@
             const visitorEndInput = document.getElementById('visitorEnd');
             const resultDiv = document.getElementById('result');
             const loadingDiv = document.getElementById('loading');
-            const sendEmailBtn = document.getElementById('sendEmailBtn');
-            const emailGroup = document.getElementById('email-group');
-            const visitorEmailInput = document.getElementById('visitorEmail');
+            const emailInfo = document.getElementById('email-info');
+            const emailDisplay = document.getElementById('email-display');
+            const visitorSubmitBtn = document.getElementById('visitorSubmitBtn');
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
             // Hilfsfunktion: Deutsches Datumsformat (DD.MM.YYYY HH:mm) in ISO-String für Input umwandeln
@@ -317,7 +312,7 @@
             const visitorPhoneParam = urlParams.get('visitor_phone');
             const visitorTimeParam = urlParams.get('visitor_time');
             const vornameParam = urlParams.get('vorname');
-            const emailParam = urlParams.get('email'); // NEU: E-Mail Parameter
+            const emailParam = urlParams.get('email');
 
             let dateSetFromUrl = false;
 
@@ -334,17 +329,17 @@
                     document.getElementById('visitorPhone').value = phone;
                     console.log('Visitor Phone gesetzt:', phone);
                     
-                    // Vorname loggen wenn vorhanden
                     if (vornameParam) {
                         console.log('Visitor Vorname gesetzt:', vornameParam);
                     }
                     
-                    // NEU: E-Mail Feld und Button anzeigen wenn E-Mail vorhanden
+                    // E-Mail Info anzeigen wenn vorhanden
                     if (emailParam) {
-                        emailGroup.classList.remove('hidden');
-                        visitorEmailInput.value = decodeURIComponent(emailParam);
-                        sendEmailBtn.classList.remove('hidden');
-                        console.log('Email Parameter gefunden:', emailParam);
+                        const decodedEmail = decodeURIComponent(emailParam);
+                        emailInfo.classList.remove('hidden');
+                        emailDisplay.textContent = decodedEmail;
+                        visitorSubmitBtn.innerHTML = '🚀 Visitor anlegen + WhatsApp & E-Mail senden';
+                        console.log('Email Parameter gefunden:', decodedEmail);
                     }
 
                     if (visitorTimeParam) {
@@ -535,13 +530,13 @@
                 }, 1500);
             });
 
-            // VISITOR-FORM SUBMIT (WhatsApp)
+            // VISITOR-FORM SUBMIT (Ein Button für alles)
             visitorForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const visitorPhone = document.getElementById('visitorPhone').value.trim();
                 const visitorStart = visitorStartInput.value;
                 const visitorEnd = visitorEndInput.value;
-                const visitorEmail = visitorEmailInput.value.trim();
+                const visitorEmail = emailParam ? decodeURIComponent(emailParam) : '';
                 
                 if (!visitorPhone || !visitorStart || !visitorEnd) {
                     showResult('❌ <strong>FEHLER:</strong> Bitte alle erforderlichen Felder ausfüllen.', 'error');
@@ -556,6 +551,7 @@
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
+                // Ein Webhook mit allen Daten - Zoho Flow entscheidet was gesendet wird
                 sendDataToWebhook({
                     source: 'web_interface_visitor',
                     visitor_name: visitorPhone,
@@ -564,57 +560,6 @@
                     visitor_end: visitorEnd,
                     action_type: 'visitor',
                     vorname: vornameParam || '',
-                    email: visitorEmail || ''
-                });
-
-                setTimeout(() => {
-                    loadingDiv.style.display = 'none';
-                    const startFormatted = new Date(visitorStart).toLocaleString('de-DE');
-                    const endFormatted = new Date(visitorEnd).toLocaleString('de-DE');
-                    
-                    const nameDisplay = vornameParam ? vornameParam : visitorPhone;
-                    
-                    let emailHint = '';
-                    if (visitorEmail) {
-                        emailHint = `<p class="mt-2 text-blue-600">📧 E-Mail verfügbar: ${visitorEmail}</p><p class="text-sm text-gray-500">Falls WhatsApp nicht zugestellt wird, nutze den E-Mail Button.</p>`;
-                    }
-                    
-                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name:</strong> ${nameDisplay}</p><p><strong>Telefon:</strong> ${visitorPhone}</p><p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">📱 WhatsApp wird automatisch gesendet!</p>${emailHint}`, 'success');
-                    
-                    // Formular NICHT zurücksetzen, damit E-Mail Button noch funktioniert
-                    // visitorForm.reset();
-                    // setDefaultVisitorTimes();
-                }, 1500);
-            });
-            
-            // NEU: E-MAIL FALLBACK BUTTON
-            sendEmailBtn.addEventListener('click', () => {
-                const visitorPhone = document.getElementById('visitorPhone').value.trim();
-                const visitorStart = visitorStartInput.value;
-                const visitorEnd = visitorEndInput.value;
-                const visitorEmail = visitorEmailInput.value.trim();
-                
-                if (!visitorEmail) {
-                    showResult('❌ <strong>FEHLER:</strong> Keine E-Mail-Adresse vorhanden.', 'error');
-                    return;
-                }
-                
-                if (!visitorPhone || !visitorStart || !visitorEnd) {
-                    showResult('❌ <strong>FEHLER:</strong> Bitte zuerst den Visitor anlegen (WhatsApp Button).', 'error');
-                    return;
-                }
-
-                loadingDiv.style.display = 'block';
-                resultDiv.style.display = 'none';
-
-                sendDataToWebhook({
-                    source: 'web_interface_visitor_email',
-                    visitor_name: visitorPhone,
-                    visitor_phone: visitorPhone,
-                    visitor_start: visitorStart,
-                    visitor_end: visitorEnd,
-                    action_type: 'visitor_email',
-                    vorname: vornameParam || '',
                     email: visitorEmail
                 });
 
@@ -622,17 +567,20 @@
                     loadingDiv.style.display = 'none';
                     const startFormatted = new Date(visitorStart).toLocaleString('de-DE');
                     const endFormatted = new Date(visitorEnd).toLocaleString('de-DE');
+                    
                     const nameDisplay = vornameParam ? vornameParam : visitorPhone;
                     
-                    showResult(`<p class="font-bold text-lg">✅ E-Mail wird gesendet!</p><p class="mt-2"><strong>An:</strong> ${visitorEmail}</p><p><strong>Name:</strong> ${nameDisplay}</p><p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-blue-600">📧 Schlüssel-Info per E-Mail gesendet!</p>`, 'success');
+                    let channels = '📱 WhatsApp';
+                    if (visitorEmail) {
+                        channels += ' + 📧 E-Mail';
+                    }
                     
-                    // Jetzt Formular zurücksetzen
+                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name:</strong> ${nameDisplay}</p><p><strong>Telefon:</strong> ${visitorPhone}</p>${visitorEmail ? `<p><strong>E-Mail:</strong> ${visitorEmail}</p>` : ''}<p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">${channels} wird automatisch gesendet!</p>`, 'success');
+                    
                     visitorForm.reset();
                     setDefaultVisitorTimes();
-                    
-                    // E-Mail Feld und Button ausblenden
-                    emailGroup.classList.add('hidden');
-                    sendEmailBtn.classList.add('hidden');
+                    emailInfo.classList.add('hidden');
+                    visitorSubmitBtn.innerHTML = '🚀 Visitor anlegen + Benachrichtigung senden';
                 }, 1500);
             });
             
