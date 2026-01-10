@@ -76,6 +76,12 @@
             </button>
         </div>
 
+        <!-- Auto-Status Banner (nur sichtbar wenn auto_status Parameter) -->
+        <div id="auto-status-banner" class="hidden mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-left">
+            <p class="text-green-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
+            <p class="text-green-600 text-sm mt-1">Bitte jetzt den Kunden in SALTO sperren.</p>
+        </div>
+
         <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
             <button id="tab-customer" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 active">
                 👥 Kunden
@@ -183,6 +189,35 @@
         const pinError = document.getElementById('pin-error');
         const logoutBtn = document.getElementById('logout-btn');
 
+        // ========== AUTO-STATUS WEBHOOK ==========
+        const MAHNSTATUS_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.b4907a57b60dbbd93766075c5bd1140c.32d3efbbb725600e6ddbfb8b34c1b3ef&isdebug=false';
+        
+        // Funktion zum Senden des Auto-Status Webhooks
+        const sendAutoStatusWebhook = (cusNumber, status) => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = MAHNSTATUS_WEBHOOK_URL;
+            form.target = 'hiddenFrame';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = status; // "sperren" oder "entsperren"
+            form.appendChild(actionInput);
+            
+            const cusInput = document.createElement('input');
+            cusInput.type = 'hidden';
+            cusInput.name = 'cus_number';
+            cusInput.value = cusNumber;
+            form.appendChild(cusInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+            
+            console.log(`✅ Auto-Status Webhook gesendet: ${status} für ${cusNumber}`);
+        };
+
         // PIN-Überprüfung
         pinForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -209,6 +244,37 @@
             pinError.classList.add('hidden');
             startSessionTimer();
             console.log('✅ Zugriff gewährt');
+            
+            // Nach Entsperren: Prüfe auf auto_status Parameter
+            checkAutoStatus();
+        }
+
+        // Auto-Status prüfen und Webhook senden
+        function checkAutoStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoStatus = urlParams.get('auto_status');
+            const cusNumber = urlParams.get('cus_number');
+            
+            if (autoStatus && cusNumber) {
+                // Zeige Banner
+                const banner = document.getElementById('auto-status-banner');
+                banner.classList.remove('hidden');
+                
+                // Passe Banner-Text an
+                if (autoStatus === 'gesperrt') {
+                    banner.innerHTML = `
+                        <p class="text-green-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
+                        <p class="text-green-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO sperren.</p>
+                    `;
+                    sendAutoStatusWebhook(cusNumber, 'sperren');
+                } else if (autoStatus === 'entsperrt') {
+                    banner.innerHTML = `
+                        <p class="text-green-800 font-semibold">✅ Status wurde automatisch zurückgesetzt</p>
+                        <p class="text-green-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO entsperren.</p>
+                    `;
+                    // Für entsperren keinen Webhook (wird im Formular-Flow gemacht)
+                }
+            }
         }
 
         // App sperren
