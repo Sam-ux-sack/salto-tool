@@ -6,7 +6,7 @@
     <title>SALTO Verwaltungs-Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .tab-btn.active {
             background-color: white;
@@ -21,72 +21,124 @@
             10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
             20%, 40%, 60%, 80% { transform: translateX(10px); }
         }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.7;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #16a085 0%, #27ae60 100%);
+        }
+        .btn-success:hover {
+            box-shadow: 0 10px 40px rgba(39, 174, 96, 0.4);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#667eea] to-[#764ba2] min-h-screen flex items-center justify-center p-4">
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
 
-    <!-- PIN-Eingabe-Screen (zunächst sichtbar) -->
-    <div id="pin-screen" class="container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-md text-center">
+    <!-- PIN-Eingabe-Screen -->
+    <div id="pin-screen" class="card rounded-3xl p-8 sm:p-10 shadow-2xl w-full max-w-md text-center">
         <div class="mb-8">
-            <div class="text-6xl mb-4">🔒</div>
-            <h1 class="text-3xl font-light text-gray-800 mb-2">SALTO Tool</h1>
-            <p class="text-gray-600">Bitte PIN eingeben</p>
+            <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <span class="text-4xl">🔐</span>
+            </div>
+            <h1 class="text-3xl font-semibold text-gray-800 mb-2">SALTO Tool</h1>
+            <p class="text-gray-500">Bitte PIN eingeben</p>
         </div>
         
         <form id="pin-form">
-            <div class="form-group mb-6">
+            <div class="mb-6">
                 <input 
                     type="password" 
                     id="pin-input" 
                     name="pin" 
                     required 
                     maxlength="6"
-                    placeholder="PIN eingeben" 
-                    class="w-full p-4 border-2 border-gray-200 rounded-lg text-center text-2xl tracking-widest transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                    placeholder="• • • •" 
+                    class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-center text-2xl tracking-[0.5em] focus:outline-none bg-gray-50"
                     autocomplete="off"
                 >
             </div>
             <button 
                 type="submit" 
-                class="bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full hover:shadow-xl hover:-translate-y-1 transform"
+                id="pin-submit-btn"
+                class="btn-primary text-white py-4 px-8 rounded-xl font-semibold text-lg w-full shadow-lg"
             >
                 Entsperren
             </button>
         </form>
         
-        <div id="pin-error" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg text-sm">
-            ❌ Falscher PIN! Bitte erneut versuchen.
+        <div id="pin-error" class="hidden mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+            <span class="font-medium">❌ Falscher PIN!</span> Bitte erneut versuchen.
         </div>
         
-        <div class="mt-6 text-xs text-gray-400">
-            🔐 Zugriff nur für autorisierte Mitarbeiter
+        <div class="mt-8 pt-6 border-t border-gray-100">
+            <p class="text-xs text-gray-400 flex items-center justify-center gap-2">
+                <span class="w-2 h-2 bg-green-400 rounded-full pulse"></span>
+                Gesichert durch Zoho Creator
+            </p>
         </div>
     </div>
 
-    <!-- Haupt-Tool (zunächst versteckt) -->
-    <div id="main-app" class="hidden container bg-white rounded-2xl p-8 sm:p-10 shadow-2xl w-full max-w-lg text-center">
+    <!-- Haupt-Tool -->
+    <div id="main-app" class="hidden card rounded-3xl p-8 sm:p-10 shadow-2xl w-full max-w-lg">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-light text-gray-800">🔐 SALTO Verwaltungs-Tool</h1>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span class="text-xl">🔐</span>
+                </div>
+                <h1 class="text-2xl font-semibold text-gray-800">SALTO Tool</h1>
+            </div>
             <button 
                 id="logout-btn" 
-                class="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200"
+                class="text-sm bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-600 px-4 py-2 rounded-lg transition duration-200 font-medium"
                 title="Tool sperren"
             >
                 🔒 Sperren
             </button>
         </div>
 
-        <!-- Auto-Status Banner (nur sichtbar wenn auto_status Parameter) -->
-        <div id="auto-status-banner" class="hidden mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-left">
-            <p class="text-green-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
-            <p class="text-green-600 text-sm mt-1">Bitte jetzt den Kunden in SALTO sperren.</p>
+        <!-- Auto-Status Banner -->
+        <div id="auto-status-banner" class="hidden mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-left">
+            <p class="text-emerald-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
+            <p class="text-emerald-600 text-sm mt-1">Bitte jetzt den Kunden in SALTO sperren.</p>
         </div>
 
-        <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
-            <button id="tab-customer" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 active">
+        <!-- Tabs -->
+        <div class="flex mb-6 bg-gray-100 rounded-xl p-1.5">
+            <button id="tab-customer" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition duration-200 active">
                 👥 Kunden
             </button>
-            <button id="tab-visitor" class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition duration-200 text-gray-600">
+            <button id="tab-visitor" class="tab-btn flex-1 py-3 px-4 rounded-lg font-medium transition duration-200 text-gray-500">
                 🎯 Besucher
             </button>
         </div>
@@ -94,32 +146,32 @@
         <!-- Kunden-Sektion -->
         <div id="customer-section">
             <form id="saltoForm">
-                <div class="form-group mb-6 text-left">
-                    <label for="actionType" class="block mb-2 font-semibold text-gray-600 text-sm">Aktion</label>
-                    <select id="actionType" name="actionType" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent bg-white">
-                        <option value="timestop">Time-Stop (Reaktivierung planen)</option>
-                        <option value="block">Kunde sperren (Ban)</option>
-                        <option value="unblock">Kunde entsperren (Unban)</option>
+                <div class="mb-5">
+                    <label for="actionType" class="block mb-2 font-medium text-gray-700 text-sm">Aktion</label>
+                    <select id="actionType" name="actionType" required class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none bg-white cursor-pointer">
+                        <option value="timestop">⏸️ Time-Stop (Reaktivierung planen)</option>
+                        <option value="block">🚫 Kunde sperren (Ban)</option>
+                        <option value="unblock">✅ Kunde entsperren (Unban)</option>
                     </select>
                 </div>
-                <div class="form-group mb-6 text-left">
-                    <label for="cusNumber" class="block mb-2 font-semibold text-gray-600 text-sm">CUS-Nummer</label>
-                    <input type="text" id="cusNumber" name="cusNumber" required placeholder="z.B. CUS-1234" class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent">
+                <div class="mb-5">
+                    <label for="cusNumber" class="block mb-2 font-medium text-gray-700 text-sm">CUS-Nummer</label>
+                    <input type="text" id="cusNumber" name="cusNumber" required placeholder="z.B. CUS-1234" class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none">
                 </div>
-                <div class="form-group mb-6 text-left" id="date-group">
-                    <label for="actionDate" id="dateLabel" class="block mb-2 font-semibold text-gray-600 text-sm">Reaktivierungsdatum</label>
-                    <input type="date" id="actionDate" name="actionDate" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent">
+                <div class="mb-5" id="date-group">
+                    <label for="actionDate" id="dateLabel" class="block mb-2 font-medium text-gray-700 text-sm">Reaktivierungsdatum</label>
+                    <input type="date" id="actionDate" name="actionDate" required class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none">
                 </div>
-                <button type="submit" class="submit-btn bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
+                <button type="submit" class="btn-primary text-white py-4 px-8 rounded-xl font-semibold text-lg w-full mt-2 shadow-lg">
                     Aktion ausführen
                 </button>
             </form>
-            <div class="info bg-blue-50 text-blue-800 border border-blue-200 text-sm mt-8 p-4 rounded-lg text-left">
-                <p><strong>💡 Funktionsweise der Aktionen:</strong></p>
-                <ul class="list-disc list-inside mt-2 space-y-1">
-                    <li><strong>Time-Stop:</strong> Deaktiviert den Kunden sofort und reaktiviert ihn am gewählten Datum.</li>
-                    <li><strong>Sperren (Ban):</strong> Sperrt den Benutzer permanent (Action Code 9). Kein Datum nötig.</li>
-                    <li><strong>Entsperren (Unban):</strong> Entsperrt den Benutzer (Action Code 10). Kein Datum nötig.</li>
+            <div class="bg-blue-50 text-blue-800 border border-blue-100 text-sm mt-6 p-4 rounded-xl">
+                <p class="font-semibold mb-2">💡 Funktionsweise:</p>
+                <ul class="space-y-1 text-blue-700">
+                    <li><strong>Time-Stop:</strong> Deaktiviert sofort, reaktiviert am Datum</li>
+                    <li><strong>Sperren:</strong> Permanente Sperre (Action Code 9)</li>
+                    <li><strong>Entsperren:</strong> Sperre aufheben (Action Code 10)</li>
                 </ul>
             </div>
         </div>
@@ -127,58 +179,55 @@
         <!-- Besucher-Sektion -->
         <div id="visitor-section" class="hidden">
             <form id="visitorForm">
-                <div class="form-group mb-6 text-left">
-                    <label for="visitorPhone" class="block mb-2 font-semibold text-gray-600 text-sm">Handynummer (wird als Name & ID verwendet)</label>
-                    <input type="tel" id="visitorPhone" name="visitorPhone" required placeholder="+41 79 123 45 67" class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                <div class="mb-5">
+                    <label for="visitorPhone" class="block mb-2 font-medium text-gray-700 text-sm">Handynummer</label>
+                    <input type="tel" id="visitorPhone" name="visitorPhone" required placeholder="+41 79 123 45 67" class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none">
                 </div>
-                <div class="form-group mb-6 text-left">
-                    <label for="visitorStart" class="block mb-2 font-semibold text-gray-600 text-sm">Start (Datum & Uhrzeit)</label>
-                    <input type="datetime-local" id="visitorStart" name="visitorStart" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                <div class="mb-5">
+                    <label for="visitorStart" class="block mb-2 font-medium text-gray-700 text-sm">Start (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="visitorStart" name="visitorStart" required class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none">
                 </div>
-                <div class="form-group mb-6 text-left">
-                    <label for="visitorEnd" class="block mb-2 font-semibold text-gray-600 text-sm">Ende (Datum & Uhrzeit)</label>
-                    <input type="datetime-local" id="visitorEnd" name="visitorEnd" required class="w-full p-4 border-2 border-gray-200 rounded-lg text-base transition duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+                <div class="mb-5">
+                    <label for="visitorEnd" class="block mb-2 font-medium text-gray-700 text-sm">Ende (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="visitorEnd" name="visitorEnd" required class="input-field w-full p-4 border-2 border-gray-200 rounded-xl text-base focus:outline-none">
                 </div>
                 
-                <!-- E-Mail Info (nur sichtbar wenn E-Mail Parameter vorhanden) -->
-                <div class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-left" id="email-info">
+                <div class="hidden mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl" id="email-info">
                     <p class="text-sm text-blue-800">📧 <strong>E-Mail:</strong> <span id="email-display"></span></p>
                     <p class="text-xs text-blue-600 mt-1">WhatsApp + E-Mail werden automatisch gesendet</p>
                 </div>
                 
-                <button type="submit" id="visitorSubmitBtn" class="submit-btn bg-gradient-to-r from-[#16a085] to-[#27ae60] text-white py-4 px-8 rounded-full font-bold text-lg cursor-pointer transition duration-300 w-full mt-5 hover:shadow-xl hover:-translate-y-1 transform">
+                <button type="submit" id="visitorSubmitBtn" class="btn-success text-white py-4 px-8 rounded-xl font-semibold text-lg w-full mt-2 shadow-lg hover:transform hover:-translate-y-0.5 transition-all">
                     🚀 Visitor anlegen + Benachrichtigung senden
                 </button>
             </form>
             
-            <div class="info bg-green-50 text-green-800 border border-green-200 text-sm mt-8 p-4 rounded-lg text-left">
-                <p><strong>🎯 Visitor-Funktionen:</strong></p>
-                <ul class="list-disc list-inside mt-2 space-y-1">
-                    <li><strong>Probetraining:</strong> Kurzzeitiger Zugang (z.B. 3 Stunden)</li>
-                    <li><strong>Gast:</strong> Mehrere Tage Zugang (z.B. 1-2 Wochen)</li>
-                    <li><strong>WhatsApp:</strong> Automatische Benachrichtigung mit Mobile Key</li>
-                    <li><strong>📧 E-Mail:</strong> Wird automatisch mitgesendet (falls vorhanden)</li>
+            <div class="bg-emerald-50 text-emerald-800 border border-emerald-100 text-sm mt-6 p-4 rounded-xl">
+                <p class="font-semibold mb-2">🎯 Visitor-Funktionen:</p>
+                <ul class="space-y-1 text-emerald-700">
+                    <li><strong>Probetraining:</strong> Kurzzeitiger Zugang (z.B. 3h)</li>
+                    <li><strong>Gast:</strong> Mehrere Tage (z.B. 1-2 Wochen)</li>
+                    <li><strong>WhatsApp:</strong> Automatische Benachrichtigung</li>
                 </ul>
             </div>
         </div>
         
-        <!-- Lade- und Ergebnis-Anzeige -->
-        <div class="loading hidden mt-6" id="loading">
-            <div class="spinner border-4 border-gray-200 border-t-4 border-t-indigo-500 rounded-full w-8 h-8 animate-spin mx-auto"></div>
-            <p class="mt-2 text-gray-600">Verarbeitung läuft...</p>
+        <!-- Loading -->
+        <div class="hidden mt-6 text-center" id="loading">
+            <div class="inline-block w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <p class="mt-3 text-gray-600">Verarbeitung läuft...</p>
         </div>
         
-        <div class="result hidden mt-8 p-4 rounded-lg font-semibold" id="result"></div>
+        <div class="result hidden mt-6 p-4 rounded-xl font-medium" id="result"></div>
     </div>
     
-    <!-- Unsichtbarer Iframe für Formular-Senden -->
     <iframe name="hiddenFrame" class="hidden"></iframe>
 
     <script>
-        // ========== SICHERES PIN-SYSTEM (Base64 Obfuscation) ==========
-        const PIN_ENC = 'MjQwNw=='; 
+        // ========== ZOHO CREATOR PIN VALIDIERUNG ==========
+        const PIN_VALIDATE_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.d2ad486cd8be1214031b9c8c257afae9.1bea2b0c130409a6c6138b6031711322&isdebug=false';
         
-        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 Minuten
+        const SESSION_TIMEOUT = 30 * 60 * 1000;
         let sessionTimer = null;
         let lastActivity = Date.now();
 
@@ -187,12 +236,12 @@
         const pinForm = document.getElementById('pin-form');
         const pinInput = document.getElementById('pin-input');
         const pinError = document.getElementById('pin-error');
+        const pinSubmitBtn = document.getElementById('pin-submit-btn');
         const logoutBtn = document.getElementById('logout-btn');
 
         // ========== AUTO-STATUS WEBHOOK ==========
         const MAHNSTATUS_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.b4907a57b60dbbd93766075c5bd1140c.32d3efbbb725600e6ddbfb8b34c1b3ef&isdebug=false';
         
-        // Funktion zum Senden des Auto-Status Webhooks
         const sendAutoStatusWebhook = (cusNumber, status) => {
             const form = document.createElement('form');
             form.method = 'POST';
@@ -202,7 +251,7 @@
             const actionInput = document.createElement('input');
             actionInput.type = 'hidden';
             actionInput.name = 'action';
-            actionInput.value = status; // "sperren" oder "entsperren"
+            actionInput.value = status;
             form.appendChild(actionInput);
             
             const cusInput = document.createElement('input');
@@ -218,13 +267,38 @@
             console.log(`✅ Auto-Status Webhook gesendet: ${status} für ${cusNumber}`);
         };
 
-        // PIN-Überprüfung
-        pinForm.addEventListener('submit', (e) => {
+        // ========== PIN-VALIDIERUNG VIA ZOHO ==========
+        pinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const enteredPin = pinInput.value.trim();
             
+            if (!enteredPin) return;
+            
+            // Button deaktivieren
+            pinSubmitBtn.disabled = true;
+            pinSubmitBtn.innerHTML = '⏳ Prüfe PIN...';
+            pinError.classList.add('hidden');
+            
             try {
-                if (btoa(enteredPin) === PIN_ENC) {
+                const response = await fetch(PIN_VALIDATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'pin=' + encodeURIComponent(enteredPin)
+                });
+                
+                const text = await response.text();
+                console.log('PIN Response:', text);
+                
+                let isValid = false;
+                try {
+                    const json = JSON.parse(text);
+                    isValid = json.valid === true;
+                } catch (e) {
+                    // Falls JSON-Parsing fehlschlägt, prüfe auf String
+                    isValid = text.includes('"valid": true') || text.includes('"valid":true');
+                }
+                
+                if (isValid) {
                     unlockApp();
                 } else {
                     showPinError();
@@ -232,11 +306,16 @@
                     pinInput.focus();
                 }
             } catch (err) {
+                console.error('PIN-Validierung Fehler:', err);
                 showPinError();
+                pinInput.value = '';
+                pinInput.focus();
+            } finally {
+                pinSubmitBtn.disabled = false;
+                pinSubmitBtn.innerHTML = 'Entsperren';
             }
         });
 
-        // App entsperren
         function unlockApp() {
             pinScreen.classList.add('hidden');
             mainApp.classList.remove('hidden');
@@ -244,40 +323,33 @@
             pinError.classList.add('hidden');
             startSessionTimer();
             console.log('✅ Zugriff gewährt');
-            
-            // Nach Entsperren: Prüfe auf auto_status Parameter
             checkAutoStatus();
         }
 
-        // Auto-Status prüfen und Webhook senden
         function checkAutoStatus() {
             const urlParams = new URLSearchParams(window.location.search);
             const autoStatus = urlParams.get('auto_status');
             const cusNumber = urlParams.get('cus_number');
             
             if (autoStatus && cusNumber) {
-                // Zeige Banner
                 const banner = document.getElementById('auto-status-banner');
                 banner.classList.remove('hidden');
                 
-                // Passe Banner-Text an
                 if (autoStatus === 'gesperrt') {
                     banner.innerHTML = `
-                        <p class="text-green-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
-                        <p class="text-green-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO sperren.</p>
+                        <p class="text-emerald-800 font-semibold">✅ Status wurde automatisch auf "gesperrt" gesetzt</p>
+                        <p class="text-emerald-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO sperren.</p>
                     `;
                     sendAutoStatusWebhook(cusNumber, 'sperren');
                 } else if (autoStatus === 'entsperrt') {
                     banner.innerHTML = `
-                        <p class="text-green-800 font-semibold">✅ Status wurde automatisch zurückgesetzt</p>
-                        <p class="text-green-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO entsperren.</p>
+                        <p class="text-emerald-800 font-semibold">✅ Status wurde automatisch zurückgesetzt</p>
+                        <p class="text-emerald-600 text-sm mt-1">Kunde: <strong>${cusNumber}</strong> - Bitte jetzt in SALTO entsperren.</p>
                     `;
-                    // Für entsperren keinen Webhook (wird im Formular-Flow gemacht)
                 }
             }
         }
 
-        // App sperren
         function lockApp() {
             mainApp.classList.add('hidden');
             pinScreen.classList.remove('hidden');
@@ -287,7 +359,6 @@
             console.log('🔒 Tool gesperrt');
         }
 
-        // PIN-Fehler anzeigen
         function showPinError() {
             pinError.classList.remove('hidden');
             pinForm.classList.add('shake');
@@ -296,7 +367,6 @@
             }, 500);
         }
 
-        // Session-Timer starten
         function startSessionTimer() {
             clearTimeout(sessionTimer);
             sessionTimer = setTimeout(() => {
@@ -305,30 +375,26 @@
             }, SESSION_TIMEOUT);
         }
 
-        // Aktivität tracken und Timer zurücksetzen
         function resetSessionTimer() {
             lastActivity = Date.now();
             startSessionTimer();
         }
 
-        // Event Listener für Benutzeraktivität
         ['mousedown', 'keypress', 'scroll', 'touchstart'].forEach(event => {
             document.addEventListener(event, resetSessionTimer);
         });
 
-        // Logout-Button
         logoutBtn.addEventListener('click', () => {
             if (confirm('Möchtest du das Tool wirklich sperren?')) {
                 lockApp();
             }
         });
 
-        // Fokus auf PIN-Input beim Laden
         window.addEventListener('load', () => {
             pinInput.focus();
         });
 
-        // ========== ORIGINAL TOOL FUNKTIONALITÄT ==========
+        // ========== ORIGINAL TOOL FUNKTIONALITÄT (UNVERÄNDERT) ==========
         document.addEventListener('DOMContentLoaded', () => {
             const actionTypeSelect = document.getElementById('actionType');
             const dateGroup = document.getElementById('date-group');
@@ -344,7 +410,6 @@
             const visitorSubmitBtn = document.getElementById('visitorSubmitBtn');
             const ZOHO_WEBHOOK_URL = 'https://flow.zoho.eu/20077340494/flow/webhook/incoming?zapikey=1001.281aec9f9905dc98d844ae207caa1ea3.f1b5d9f479fcef8a1be8acdf1c94a474&isdebug=false';
 
-            // Hilfsfunktion: Deutsches Datumsformat (DD.MM.YYYY HH:mm) in ISO-String für Input umwandeln
             const parseGermanDateTime = (dateTimeStr) => {
                 try {
                     const [datePart, timePart] = dateTimeStr.split(' ');
@@ -358,23 +423,19 @@
                 }
             };
 
-            // Hilfsfunktion: Date Objekt zu input datetime-local String (YYYY-MM-DDTHH:mm)
             const dateToLocalISO = (date) => {
                 const offset = date.getTimezoneOffset() * 60000;
                 const localISOTime = new Date(date.getTime() - offset).toISOString().slice(0, 16);
                 return localISOTime;
             };
 
-            // URL Parameter auslesen
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Kunden Parameter
             const cusNumberParam = urlParams.get('cus_number');
             const actionTypeParam = urlParams.get('action_type');
             const actionDateParam = urlParams.get('action_date');
             const autoSubmit = urlParams.get('auto_submit');
 
-            // Visitor Parameter
             const visitorPhoneParam = urlParams.get('visitor_phone');
             const visitorTimeParam = urlParams.get('visitor_time');
             const vornameParam = urlParams.get('vorname');
@@ -383,7 +444,6 @@
             let dateSetFromUrl = false;
 
             setTimeout(() => {
-                // --- Visitor Logik ---
                 if (visitorPhoneParam) {
                     switchTab('visitor');
                     
@@ -399,7 +459,6 @@
                         console.log('Visitor Vorname gesetzt:', vornameParam);
                     }
                     
-                    // E-Mail Info anzeigen wenn vorhanden
                     if (emailParam) {
                         const decodedEmail = decodeURIComponent(emailParam);
                         emailInfo.classList.remove('hidden');
@@ -425,7 +484,6 @@
                     }
                 }
                 
-                // --- Kunden Logik (Bestehend) ---
                 if (cusNumberParam) {
                     document.getElementById('cusNumber').value = cusNumberParam;
                     switchTab('customer');
@@ -490,11 +548,11 @@
 
             const showResult = (message, type = 'info') => {
                 resultDiv.innerHTML = message;
-                resultDiv.className = 'result mt-8 p-4 rounded-lg font-semibold';
+                resultDiv.className = 'result mt-6 p-4 rounded-xl font-medium';
                 const typeClasses = {
-                    'success': ['bg-green-100', 'border', 'border-green-300', 'text-green-800'],
-                    'error': ['bg-red-100', 'border', 'border-red-300', 'text-red-800'],
-                    'info': ['bg-blue-100', 'border', 'border-blue-300', 'text-blue-800']
+                    'success': ['bg-emerald-50', 'border', 'border-emerald-200', 'text-emerald-800'],
+                    'error': ['bg-red-50', 'border', 'border-red-200', 'text-red-800'],
+                    'info': ['bg-blue-50', 'border', 'border-blue-200', 'text-blue-800']
                 };
                 resultDiv.classList.remove('hidden');
                 resultDiv.classList.add(...(typeClasses[type] || []));
@@ -553,7 +611,6 @@
                 }
             });
 
-            // KUNDEN-FORM SUBMIT (Original - unverändert)
             saltoForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const cusNumber = document.getElementById('cusNumber').value.trim();
@@ -596,7 +653,6 @@
                 }, 1500);
             });
 
-            // VISITOR-FORM SUBMIT (Ein Button für alles)
             visitorForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const visitorPhone = document.getElementById('visitorPhone').value.trim();
@@ -617,7 +673,6 @@
                 loadingDiv.style.display = 'block';
                 resultDiv.style.display = 'none';
 
-                // Ein Webhook mit allen Daten - Zoho Flow entscheidet was gesendet wird
                 sendDataToWebhook({
                     source: 'web_interface_visitor',
                     visitor_name: visitorPhone,
@@ -641,7 +696,7 @@
                         channels += ' + 📧 E-Mail';
                     }
                     
-                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name:</strong> ${nameDisplay}</p><p><strong>Telefon:</strong> ${visitorPhone}</p>${visitorEmail ? `<p><strong>E-Mail:</strong> ${visitorEmail}</p>` : ''}<p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-green-600">${channels} wird automatisch gesendet!</p>`, 'success');
+                    showResult(`<p class="font-bold text-lg">✅ Visitor erfolgreich angelegt!</p><p class="mt-2"><strong>Name:</strong> ${nameDisplay}</p><p><strong>Telefon:</strong> ${visitorPhone}</p>${visitorEmail ? `<p><strong>E-Mail:</strong> ${visitorEmail}</p>` : ''}<p><strong>Zeitraum:</strong> ${startFormatted} bis ${endFormatted}</p><p class="mt-2 text-emerald-600">${channels} wird automatisch gesendet!</p>`, 'success');
                     
                     visitorForm.reset();
                     setDefaultVisitorTimes();
